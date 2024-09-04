@@ -149,10 +149,10 @@ class MyDAQ:
 
         Returns
         -------
-        timeArray : TYPE
-            DESCRIPTION.
-        wave : TYPE
-            DESCRIPTION.
+        timeArray : ndarray
+            ndarray containing the discrete times at which the waveform is evaluated.
+        wave : ndarray
+            ndarray of the evaluated waveform.
 
         """
         assert self.samplerate, "Samplerate should be set first!"
