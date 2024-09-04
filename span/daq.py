@@ -132,7 +132,7 @@ class MyDAQ:
             return np.asarray(data)
     
     @staticmethod
-    def generateWaveform(form, frequency, samplerate, amplitude=1, phase=0, duration=1):
+    def generateWaveform(form, samplerate, frequency, amplitude=1, phase=0, duration=1):
         """
         Geneate a waveform from the 4 basic wave parameters
 
@@ -141,10 +141,10 @@ class MyDAQ:
         form : str
             Type of waveform. 
             Must be in ["sine", "square", "sawtooth", "isawtooth", "triangle"].
-        frequency : int or float
-            Frequency of the waveform.
         samplerate: int
             Samplerate with which to sample waveform.
+        frequency : int or float
+            Frequency of the waveform.
         amplitude : int or float, optional
             Amplitude of the waveform in volts. The default is 1.
         phase : int or float, optional
@@ -162,6 +162,7 @@ class MyDAQ:
         """
         timeArray = MyDAQ.getTimeArray(duration, samplerate)
         arg = 2*np.pi * frequency * timeArray + np.deg2rad(phase)
+        
         match form:
             case "sine":
                 wave = amplitude * np.sin(arg)
@@ -173,6 +174,8 @@ class MyDAQ:
                 wave = amplitude * sawtooth(arg, width=0)
             case "triangle":
                 wave = amplitude * sawtooth(arg, width=0.5)
+            case _:
+                raise ValueError(f"{form} is not a recognized wavefront form")
         return timeArray, wave
     
     @staticmethod
