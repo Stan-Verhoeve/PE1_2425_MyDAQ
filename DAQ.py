@@ -47,7 +47,7 @@ class MyDAQ:
         """
         Add input channels to the DAQ
         """
-        assert type(self.name) is not type(None), "Name should be set first!"
+        assert self.name, "Name should be set first!"
         
         # Make sure channels can be iterated over
         if isinstance(channels, str):
@@ -62,6 +62,8 @@ class MyDAQ:
         """
         Set the correct timings for task based on number of samples
         """
+        assert self.samplerate, "Samplerate should be set first!"
+
         task.timing.cfg_samp_clk_timing(self.samplerate, 
                                         sample_mode=dx.constants.AcquisitionType.FINITE,
                                         samps_per_chan=samples)
