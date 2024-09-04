@@ -158,8 +158,6 @@ class MyDAQ:
             ndarray of the evaluated waveform.
 
         """
-        assert self.samplerate, "Samplerate should be set first!"
-        
         timeArray = MyDAQ.getTimeArray(duration, samplerate)
         arg = 2*np.pi * frequency * timeArray + np.deg2rad(phase)
         match form:
