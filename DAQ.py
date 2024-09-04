@@ -129,7 +129,8 @@ class MyDAQ:
             
             return np.asarray(data)
     
-    def generateWaveform(self, form, frequency, amplitude=1, phase=0, duration=1):
+    @staticmethod
+    def generateWaveform(self, form, frequency, samplerate, amplitude=1, phase=0, duration=1):
         """
         Geneate a waveform from the 4 basic wave parameters
 
@@ -140,6 +141,8 @@ class MyDAQ:
             Must be in ["sine", "square", "sawtooth", "isawtooth", "triangle"].
         frequency : int or float
             Frequency of the waveform.
+        samplerate: int
+            Samplerate with which to sample waveform.
         amplitude : int or float, optional
             Amplitude of the waveform in volts. The default is 1.
         phase : int or float, optional
@@ -157,7 +160,7 @@ class MyDAQ:
         """
         assert self.samplerate, "Samplerate should be set first!"
         
-        timeArray = MyDAQ.getTimeArray(duration, self.samplerate)
+        timeArray = MyDAQ.getTimeArray(duration, samplerate)
         arg = 2*np.pi * frequency * timeArray + np.deg2rad(phase)
         match form:
             case "sine":
