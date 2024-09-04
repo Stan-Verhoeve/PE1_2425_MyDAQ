@@ -1,7 +1,7 @@
 import numpy as np
 import nidaqmx as dx
 from scipy.signal import sawtooth, square
-import time
+from time import sleep
 
 class MyDAQ:
     def __init__(self):
@@ -109,7 +109,7 @@ class MyDAQ:
             writeTask.write(voltages, auto_start=True)
             
             # Wait for writing to finish
-            time.sleep(samples / self.samplerate + 1/1000)
+            sleep(samples / self.samplerate + 1/1000)
             writeTask.stop()
     
     def readwrite(self, voltages, readChannels, writeChannels):
