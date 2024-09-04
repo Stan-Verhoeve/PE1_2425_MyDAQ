@@ -132,7 +132,7 @@ class MyDAQ:
             return np.asarray(data)
     
     @staticmethod
-    def generateWaveform(self, form, frequency, samplerate, amplitude=1, phase=0, duration=1):
+    def generateWaveform(form, frequency, samplerate, amplitude=1, phase=0, duration=1):
         """
         Geneate a waveform from the 4 basic wave parameters
 
