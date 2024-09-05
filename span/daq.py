@@ -68,13 +68,18 @@ class MyDAQ:
                                         sample_mode=dx.constants.AcquisitionType.FINITE,
                                         samps_per_chan=samples)
     
-    def _convertDurationToSamples(self, duration):
-        assert self.samplerate, "Samplerate should be set first!"
-        
-        samples = duration * self.samplerate
+    @staticmethod
+    def convertDurationToSamples(samplerate, duration):
+        samples = duration * samplerate
         
         # Round down to nearest integer
         return int(samples)
+
+    @staticmethod
+    def convertSamplesToDuration(samplerate, samples):
+        duration = samples / samplerate
+
+        return duration
         
     
     def read(self, duration, *channels):
@@ -83,7 +88,7 @@ class MyDAQ:
         """
         
         # Convert duration to samples
-        samples = self._convertDurationToSamples(duration)
+        samples = MyDAQ.convertDurationToSamples(self.samplerate, duration)
         
         # Create read task
         with dx.Task("readOnly") as readTask:
