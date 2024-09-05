@@ -5,6 +5,7 @@
 """
 from matplotlib import pyplot as plt
 from span.daq import MyDAQ
+from numpy import random, arange
 
 # Create MyDAQ instance
 daq = MyDAQ() 
@@ -31,20 +32,39 @@ __, square = daq.generateWaveform("square", daq.samplerate, frequency=10, amplit
                         Functionality: writing
 ===============================================================================
 """
+# Plot the waveforms
+plt.figure()
+plt.plot(timeArray, sine, label = "Channel 1")
+plt.plot(timeArray, square, label = "Channel 2")
+plt.title("Arrays written to MyDAQ")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude [V]")
+plt.legend()
+plt.show()
+
 # Write a single waveform on channel 1, then the other on channel 2 (succesively)
 daq.write(sine, "AO0")
 daq.write(square, "AO1")
 
-# Write both waveform simultaneously on 2 channels
-# Also swap channels for good measure
-daq.write(np.asarray([square, sine]), "AO0", "AO1")
+# Write both waveforms simultaneously on 2 channels
+daq.write(np.asarray([sine, square]), "AO0", "AO1")
 
-plt.figure()
-plt.plot(timeArray, square, label = "Channel 1")
-plt.plot(timeArray, sine, label = "Channel 2")
-plt.xlabel("Time [s]")
-plt.ylabel("Amplitude [V]")
-plt.show()
+# In principle, timeArray was formed because when we made the waveforms, we
+# provided a duration. However, in the situation where you create a signal
+# that is to be written, without knowing its duration, we can still get a 
+# timeArray
+
+# Create array of random duration
+randomDuration = random.uniform(1,5)
+randomSamples = arange(0, randomDuration, 1/daq.samplerate)
+
+# Reconstruct duration using class functionality
+reconstructedDuration = daq.convertSamplesToDuration(daq.samplerate, randomSamples.size)
+timeArray = daq.getTimeArray(reconstructedDuration, daq.samplerate)
+
+# Check results to 4 digits
+print(f"Random duration        : {randomDuration:.4f}")
+print(f"Reconstructed duration : {reconstructedDuration:.4f}")
 
 """
 ===============================================================================
