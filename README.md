@@ -7,7 +7,7 @@ It is recommended to create a virtual python3 environment and activate it. See e
 * Move into the main directory
 * Install using `pip install .`
 
-Alternatively, the [source code](span) can be used on its own to drive the NI MyDAQ. Keep in mind that (relative) imports referencing `SPAN` may not work if your Python interpreter does not have access to the PATH of the source code.
+Alternatively, the [source code](span) can be used on its own to drive the NI MyDAQ, but keep in mind that (relative) imports referencing `SPAN` then may not work if your Python interpreter does not have access to the PATH of the source code.
 
 # Usage
 Basic usage for driving the MyDAQ and analysing spectra can be found in the [examples](examples) directory.
