@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import ndarray
 import nidaqmx as dx
 from scipy.signal import sawtooth, square
 from time import sleep
@@ -13,7 +14,7 @@ class MyDAQ:
         return self.__samplerate
     
     @samplerate.setter
-    def samplerate(self, newSamplerate):
+    def samplerate(self, newSamplerate: int) -> None:
         assert newSamplerate > 0 and type(newSamplerate) == int, "Samplerate should be a positive integer!"
         self.__samplerate = newSamplerate
     
@@ -22,11 +23,11 @@ class MyDAQ:
         return self.__name
     
     @name.setter
-    def name(self, newName):
+    def name(self, newName: str) -> None:
         assert type(newName) == str, "Name should be a string!"
         self.__name = newName
     
-    def _addOutputChannels(self, task, channels):
+    def _addOutputChannels(self, task: dx.Task, channels: str | list[str]) -> None:
         """
         Add output channels to the DAQ
         """
@@ -38,12 +39,12 @@ class MyDAQ:
             
         # Iterate over all channels and add to task
         for channel in channels:
-            if self.__name in channel:
+            if self.name in channel:
                 task.ao_channels.add_ao_voltage_chan(channel)
             else:
-                task.ao_channels.add_ao_voltage_chan(self.__name + f"{channel}")
+                task.ao_channels.add_ao_voltage_chan(self.name + f"/{channel}")
     
-    def _addInputChannels(self, task, channels):
+    def _addInputChannels(self, task: dx.Task, channels: str | list[str]) -> None:
         """
         Add input channels to the DAQ
         """
@@ -55,10 +56,13 @@ class MyDAQ:
             
         # Iterate over all channels and add to task
         for channel in channels:
-            task.ai_channels.add_ai_voltage_chan(channel)
+            if self.name in channel:
+                task.ai_channels.add_ai_voltage_chan(channel)
+            else:
+                task.ai_channels.add_ai_voltage_chan(self.name + f"/{channel}")
     
     
-    def _configureChannelTimings(self, task, samples):
+    def _configureChannelTimings(self, task: dx.Task, samples: int) -> None:
         """
         Set the correct timings for task based on number of samples
         """
@@ -69,20 +73,20 @@ class MyDAQ:
                                         samps_per_chan=samples)
     
     @staticmethod
-    def convertDurationToSamples(samplerate, duration):
+    def convertDurationToSamples(samplerate: int, duration: int | float) -> int:
         samples = duration * samplerate
         
         # Round down to nearest integer
         return int(samples)
 
     @staticmethod
-    def convertSamplesToDuration(samplerate, samples):
+    def convertSamplesToDuration(samplerate: int, samples: int) -> int | float:
         duration = samples / samplerate
 
         return duration
         
     
-    def read(self, duration, *channels):
+    def read(self, duration: int | float, *channels: str) -> ndarray:
         """
         Read from user-specified channels for `duration` seconds
         """
@@ -101,7 +105,7 @@ class MyDAQ:
             
             return np.asarray(data)
     
-    def write(self, voltages, *channels):
+    def write(self, voltages: ndarray, *channels: str) -> None:
         """
         Write `voltages` to user-specified channels. 
         """
@@ -119,7 +123,7 @@ class MyDAQ:
             sleep(samples / self.samplerate + 1/1000)
             writeTask.stop()
     
-    def readwrite(self, voltages, readChannels, writeChannels):
+    def readwrite(self, voltages: ndarray, readChannels: str | list[str], writeChannels: str | list[str]) -> ndarray:
         samples = max(voltages.shape)
         
         with dx.Task("read") as readTask, dx.Task("write") as writeTask:
@@ -137,7 +141,7 @@ class MyDAQ:
             return np.asarray(data)
     
     @staticmethod
-    def generateWaveform(form, samplerate, frequency, amplitude=1, phase=0, duration=1):
+    def generateWaveform(form: str, samplerate: int, frequency: int | float, amplitude: int | float=1, phase: int | float=0, duration: int | float=1) -> tuple[ndarray, ndarray]:
         """
         Geneate a waveform from the 4 basic wave parameters
 
@@ -184,7 +188,7 @@ class MyDAQ:
         return timeArray, wave
     
     @staticmethod
-    def getTimeArray(duration, samplerate):
+    def getTimeArray(duration: int | float, samplerate: int) -> ndarray:
         return np.arange(1/samplerate, duration, 1/samplerate)
     
     def __str__(self):

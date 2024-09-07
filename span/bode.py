@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
+from numpy import ndarray
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.integrate import trapezoid
@@ -13,25 +14,25 @@ class Bode:
     of the output only, NOT the ratio)
     """
     samplerate: int
-    voltageOut: np.ndarray
-    voltageIn: np.ndarray = None
+    voltageOut: ndarray
+    voltageIn: ndarray = None
     
     def __post_init__(self):
         self.timeArray = np.linspace(1/self.samplerate, self.voltageOut.size/self.samplerate, self.voltageOut.size)
     
     @staticmethod
-    def integral(x, y):
+    def integral(x: ndarray, y: ndarray) -> float | ndarray:
         return trapezoid(y, x)
 
     @staticmethod
-    def FFT(voltage):
+    def FFT(voltage: ndarray) -> ndarray:
         return np.fft.fftshift(np.fft.fft(voltage))
     
     @staticmethod
-    def freqs(voltage, samplerate):
+    def freqs(voltage: ndarray, samplerate: int) -> ndarray:
         return np.fft.fftshift(np.fft.fftfreq(voltage.size, d=1/samplerate))
     
-    def getPower(self, f, delta):
+    def getPower(self, f: int | float, delta: int | float) -> float:
         """
         Calculate the power (ratio) using Parserval theorem
         """
@@ -53,7 +54,7 @@ class Bode:
         
         return powerOut / powerIn
 
-    def getPhase(self, f, delta):
+    def getPhase(self, f: int | float, delta: int | float) -> float:
         """
         Calculate the phase (ratio)
         """
@@ -79,7 +80,7 @@ class Bode:
         return np.mod(phaseOut - phaseIn, 2*np.pi) - 2*np.pi
 
 
-def plotBode(freqs, mag, phase, save=None, analytic=None, **kwargs):
+def plotBode(freqs: ndarray, mag:ndarray, phase:ndarray, save: str=None, analytic: ndarray=None, **kwargs) -> None:
 
     # Use GridSpec to nicely center subplots
     gs = GridSpec(2, 4)
@@ -91,7 +92,7 @@ def plotBode(freqs, mag, phase, save=None, analytic=None, **kwargs):
     polarAx = fig.add_subplot(gs[1, 1:3], projection="polar")
     
     # Plot data
-    magAx.scatter(freqs, 20 * np.log10(abs(mag)), s=4, c="k", label="Reconstructed")
+    magAx.scatter(freqs, 20 * np.log10(abs(mag)), s=4, c="k", label="Measured")
     phaseAx.scatter(freqs, phase, s=4, c="k")
     polarAx.scatter(phase, mag, s=4, c="k")
     
@@ -122,3 +123,4 @@ def plotBode(freqs, mag, phase, save=None, analytic=None, **kwargs):
     
     plt.tight_layout()
     plt.show()
+
