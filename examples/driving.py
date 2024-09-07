@@ -3,12 +3,13 @@
                         Functionality: basics
 ===============================================================================
 """
+
 from matplotlib import pyplot as plt
 from span.daq import MyDAQ
 from numpy import random, arange
 
 # Create MyDAQ instance
-daq = MyDAQ() 
+daq = MyDAQ()
 print(daq)
 
 # Give DAQ a name and samplerate
@@ -25,7 +26,9 @@ print(daq)
 """
 # Generate some waveforms
 timeArray, sine = daq.generateWaveform("sine", daq.samplerate, frequency=5)
-__, square = daq.generateWaveform("square", daq.samplerate, frequency=10, amplitude=0.5, phase=90)
+__, square = daq.generateWaveform(
+    "square", daq.samplerate, frequency=10, amplitude=0.5, phase=90
+)
 
 """
 ===============================================================================
@@ -34,8 +37,8 @@ __, square = daq.generateWaveform("square", daq.samplerate, frequency=10, amplit
 """
 # Plot the waveforms
 plt.figure()
-plt.plot(timeArray, sine, label = "Channel 1")
-plt.plot(timeArray, square, label = "Channel 2")
+plt.plot(timeArray, sine, label="Channel 1")
+plt.plot(timeArray, square, label="Channel 2")
 plt.title("Arrays written to MyDAQ")
 plt.xlabel("Time [s]")
 plt.ylabel("Amplitude [V]")
@@ -51,12 +54,12 @@ daq.write(np.asarray([sine, square]), "AO0", "AO1")
 
 # In principle, timeArray was formed because when we made the waveforms, we
 # provided a duration. However, in the situation where you create a signal
-# that is to be written, without knowing its duration, we can still get a 
+# that is to be written, without knowing its duration, we can still get a
 # timeArray
 
 # Create array of random duration
-randomDuration = random.uniform(1,5)
-randomSamples = arange(0, randomDuration, 1/daq.samplerate)
+randomDuration = random.uniform(1, 5)
+randomSamples = arange(0, randomDuration, 1 / daq.samplerate)
 
 # Reconstruct duration using class functionality
 reconstructedDuration = daq.convertSamplesToDuration(daq.samplerate, randomSamples.size)
@@ -79,8 +82,8 @@ time1 = daq.getTimeArray(2, daq.samplerate)
 time2 = daq.getTimeArray(1, daq.samplerate)
 
 plt.figure()
-plt.plot(time1, data1, label = "Channel 1")
-plt.plot(time2, data2, label = "Channel 2")
+plt.plot(time1, data1, label="Channel 1")
+plt.plot(time2, data2, label="Channel 2")
 plt.xlabel("Time [s]")
 plt.ylabel("Amplitude [V]")
 plt.show()
@@ -110,8 +113,8 @@ data2 = daq.readwrite(square, "AI0", "AO1")
 time2 = daq.getTImeArray(1, daq.samplerate)
 
 plt.figure()
-plt.plot(time1, data1, label = "Channel 2")
-plt.plot(time2, data2, label = "Channel 1")
+plt.plot(time1, data1, label="Channel 2")
+plt.plot(time2, data2, label="Channel 1")
 plt.xlabel("Time [s]")
 plt.ylabel("Amplitude [V]")
 plt.show()
