@@ -20,18 +20,18 @@ class Bode:
         self.timeArray = np.linspace(1/self.samplerate, self.voltageOut.size/self.samplerate, self.voltageOut.size)
     
     @staticmethod
-    def integral(x, y):
+    def integral(x: np.ndarray, y: np.ndarray) -> float:
         return trapezoid(y, x)
 
     @staticmethod
-    def FFT(voltage):
+    def FFT(voltage: np.ndarray) -> np.ndarray:
         return np.fft.fftshift(np.fft.fft(voltage))
     
     @staticmethod
-    def freqs(voltage, samplerate):
+    def freqs(voltage: np.ndarray, samplerate: float) -> np.ndarray:
         return np.fft.fftshift(np.fft.fftfreq(voltage.size, d=1/samplerate))
     
-    def getPower(self, f, delta):
+    def getPower(self, f: float, delta: float) -> float:
         """
         Calculate the power (ratio) using Parserval theorem
         """
@@ -53,7 +53,7 @@ class Bode:
         
         return powerOut / powerIn
 
-    def getPhase(self, f, delta):
+    def getPhase(self, f: float, offset: float = 0) -> float:
         """
         Calculate the phase (ratio)
         """
@@ -76,10 +76,10 @@ class Bode:
             phaseIn = 0.
         
         # We are not interested in angles outside (0, -2pi]
-        return np.mod(phaseOut - phaseIn, 2*np.pi) - 2*np.pi
+        return np.mod(phaseOut - phaseIn + offset, 2*np.pi) - 2*np.pi - offset
 
 
-def plotBode(freqs, mag, phase, save=None, analytic=None, **kwargs):
+def plotBode(freqs: np.ndarray, mag: np.ndarray, phase: np.ndarray, save=None, analytic=None, **kwargs):
 
     # Use GridSpec to nicely center subplots
     gs = GridSpec(2, 4)

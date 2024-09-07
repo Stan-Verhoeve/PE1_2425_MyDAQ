@@ -12,15 +12,16 @@ daq.samplerate = 200_000
 daq.name = "myDAQ1"
 print(daq)
 
-# Keep track of power and phase
-powers = []
-phases = []
-
 # Do measurement in the domain [1Hz, 100kHz)
 freqs = np.logspace(0, 5, 50)
 
+# Keep track of power and phase
+powers = np.zeroslike(freqs)
+phases = np.zeroslike(freqs)
+
+
 # Measure over range of frequencies
-for freq in freqs:
+for i, freq in enumerate(freqs):
     print(freq)
 
     # Create sinusoidal waveform
@@ -36,9 +37,9 @@ for freq in freqs:
     power = bode.getPower(freq, 1)
     phase = bode.getPhase(freq, 1)
     
-    # Add to list
-    powers.append(power)
-    phases.append(phase)
+    # Save power and phase of freq.
+    powers[i] = power
+    phases[i] = phases
 
 # Plot the bode plots
 plotBode(2*np.pi*freqs, np.sqrt(powers), phases)

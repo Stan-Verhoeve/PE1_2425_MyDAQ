@@ -16,15 +16,15 @@ wres = 1000
 H = TransferFunction([0, wres],[1, wres])
 Hfunc = lambda w: wres / (wres + 1j * w)
 
-# Keep track of (simulated) power and phase
-powers = []
-phases = []
-
 # Run simulation in the domain [1Hz, 100kHz)
 freqs = np.logspace(0, 5, 50)
 
+# Keep track of (simulated) power and phase
+powers = np.zeroslike(freqs)
+phases = np.zeroslike(freqs)
+
 # Run simulation over range of frequencies
-for freq in freqs:
+for i, freq in enumerate(freqs):
     print(freq)
     # Input is simple sine, simulate output
     signalIn = np.sin(2*np.pi*freq*timeArray)
@@ -37,9 +37,9 @@ for freq in freqs:
     power = bode.getPower(freq, 1)
     phase = bode.getPhase(freq, 1)
     
-    # Add to list
-    powers.append(power)
-    phases.append(phase)
+    # Save power and phase of freq.
+    powers[i] = power
+    phases[i] = phases
 
 # Analytic solution of transfer function
 analytic = Hfunc(2*np.pi*freqs)
