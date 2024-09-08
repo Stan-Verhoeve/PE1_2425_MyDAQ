@@ -4,9 +4,10 @@
 ===============================================================================
 """
 
+import numpy as np
 from matplotlib import pyplot as plt
+
 from span.daq import MyDAQ
-from numpy import random, arange
 
 # Create MyDAQ instance
 daq = MyDAQ()
@@ -50,7 +51,7 @@ daq.write(sine, "AO0")
 daq.write(square, "AO1")
 
 # Write both waveforms simultaneously on 2 channels
-daq.write(np.asarray([sine, square]), "AO0", "AO1")
+daq.write(np.array([sine, square]), "AO0", "AO1")
 
 # In principle, timeArray was formed because when we made the waveforms, we
 # provided a duration. However, in the situation where you create a signal
@@ -58,8 +59,9 @@ daq.write(np.asarray([sine, square]), "AO0", "AO1")
 # timeArray
 
 # Create array of random duration
-randomDuration = random.uniform(1, 5)
-randomSamples = arange(0, randomDuration, 1 / daq.samplerate)
+randomDuration = np.random.uniform(1,5)
+randomSamples = np.arange(0, randomDuration, 1/daq.samplerate)
+
 
 # Reconstruct duration using class functionality
 reconstructedDuration = daq.convertSamplesToDuration(daq.samplerate, randomSamples.size)
@@ -120,7 +122,7 @@ plt.ylabel("Amplitude [V]")
 plt.show()
 
 # Write on channels 1 and 2, and read on channels 1 and 2
-data = daq.readwrite(np.asarray([sine, square]), ["AI0", "AI1"], ["AO0", "AO1"])
+data = daq.readwrite(np.array([sine, square]), ["AI0", "AI1"], ["AO0", "AO1"])
 timeArray = daq.getTimeArray(1, daq.samplerate)
 
 plt.figure()

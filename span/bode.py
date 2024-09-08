@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import numpy as np
-from numpy import ndarray
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.integrate import trapezoid
@@ -16,8 +15,8 @@ class Bode:
     """
 
     samplerate: int
-    voltageOut: ndarray
-    voltageIn: ndarray = None
+    voltageOut: np.ndarray
+    voltageIn: np.ndarray = None
 
     def __post_init__(self):
         self.timeArray = np.linspace(
@@ -27,18 +26,18 @@ class Bode:
         )
 
     @staticmethod
-    def integral(x: ndarray, y: ndarray) -> float | ndarray:
+    def integral(x: np.ndarray, y: np.ndarray) -> float | np.ndarray:
         return trapezoid(y, x)
 
     @staticmethod
-    def FFT(voltage: ndarray) -> ndarray:
+    def FFT(voltage: np.ndarray) -> np.ndarray:
         return np.fft.fftshift(np.fft.fft(voltage))
 
     @staticmethod
-    def freqs(voltage: ndarray, samplerate: int) -> ndarray:
+    def freqs(voltage: np.ndarray, samplerate: int) -> np.ndarray:
         return np.fft.fftshift(np.fft.fftfreq(voltage.size, d=1 / samplerate))
 
-    def getPower(self, f: int | float, delta: int | float) -> float:
+    def getPower(self, f: float, delta: float) -> float:
         """
         Calculate the power (ratio) using Parserval theorem
         """
@@ -60,7 +59,7 @@ class Bode:
 
         return powerOut / powerIn
 
-    def getPhase(self, f: int | float, delta: int | float) -> float:
+    def getPhase(self, f: float, offset: float = 0) -> float:
         """
         Calculate the phase (ratio)
         """
@@ -83,15 +82,15 @@ class Bode:
             phaseIn = 0.0
 
         # We are not interested in angles outside (0, -2pi]
-        return np.mod(phaseOut - phaseIn, 2 * np.pi) - 2 * np.pi
+        return np.mod(phaseOut - phaseIn + offset, 2*np.pi) - 2*np.pi - offset
 
 
 def plotBode(
-    freqs: ndarray,
-    mag: ndarray,
-    phase: ndarray,
+    freqs: np.ndarray,
+    mag: np.ndarray,
+    phase: np.ndarray,
     save: str = None,
-    analytic: ndarray = None,
+    analytic: np.ndarray = None,
     **kwargs
 ) -> None:
 
@@ -127,7 +126,7 @@ def plotBode(
     polarAx.grid(alpha=0.5)
 
     # Add analytic if provided
-    if analytic is not None:
+    if not (analytic is None):
         magAx.plot(freqs, 20 * np.log10(abs(analytic)), c="r", label="Analytic")
         phaseAx.plot(freqs, np.angle(analytic), c="r")
         polarAx.plot(np.angle(analytic), abs(analytic), c="r")

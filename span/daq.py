@@ -1,40 +1,40 @@
 import numpy as np
-from numpy import ndarray
 import nidaqmx as dx
 from scipy.signal import sawtooth, square
 from time import sleep
 
 
 class MyDAQ:
+    __samplerate: int
+    __name: str
+    
     def __init__(self):
-        self.__samplerate = None
-        self.__name = None
+        pass
 
     @property
-    def samplerate(self):
+    def samplerate(self) -> int:
         return self.__samplerate
 
     @samplerate.setter
     def samplerate(self, newSamplerate: int) -> None:
-        assert (
-            newSamplerate > 0 and type(newSamplerate) == int
-        ), "Samplerate should be a positive integer!"
+        assert isinstance(newSamplerate, int), "Samplerate should be an integer."
+        assert newSamplerate > 0 , "Samplerate should be positive."
         self.__samplerate = newSamplerate
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
     @name.setter
     def name(self, newName: str) -> None:
-        assert type(newName) == str, "Name should be a string!"
+        assert isinstance(newName, str), "Name should be a string."
         self.__name = newName
-
-    def _addOutputChannels(self, task: dx.Task, channels: str | list[str]) -> None:
+    
+    def _addOutputChannels(self, task: dx.task.Task, channels: str | list[str]) -> None:
         """
         Add output channels to the DAQ
         """
-        assert self.name, "Name should be set first!"
+        assert not (self.name is None), "Name should be set first."
 
         # Make sure channels can be iterated over
         if isinstance(channels, str):
@@ -45,14 +45,14 @@ class MyDAQ:
             if self.name in channel:
                 task.ao_channels.add_ao_voltage_chan(channel)
             else:
-                task.ao_channels.add_ao_voltage_chan(self.name + f"/{channel}")
-
-    def _addInputChannels(self, task: dx.Task, channels: str | list[str]) -> None:
+                task.ao_channels.add_ao_voltage_chan(f"{self.name}/{channel}")
+    
+    def _addInputChannels(self, task: dx.task.Task, channels: str | list[str]) -> None:
         """
         Add input channels to the DAQ
         """
-        assert self.name, "Name should be set first!"
-
+        assert not (self.name is None), "Name should be set first."
+        
         # Make sure channels can be iterated over
         if isinstance(channels, str):
             channels = [channels]
@@ -62,13 +62,13 @@ class MyDAQ:
             if self.name in channel:
                 task.ai_channels.add_ai_voltage_chan(channel)
             else:
-                task.ai_channels.add_ai_voltage_chan(self.name + f"/{channel}")
+                task.ai_channels.add_ai_voltage_chan(f"{self.name}/{channel}")
 
-    def _configureChannelTimings(self, task: dx.Task, samples: int) -> None:
+    def _configureChannelTimings(self, task: dx.task.Task, samples: int) -> None:
         """
         Set the correct timings for task based on number of samples
         """
-        assert self.samplerate, "Samplerate should be set first!"
+        assert not (self.samplerate is None), "Samplerate should be set first."
 
         task.timing.cfg_samp_clk_timing(
             self.samplerate,
@@ -77,19 +77,19 @@ class MyDAQ:
         )
 
     @staticmethod
-    def convertDurationToSamples(samplerate: int, duration: int | float) -> int:
+    def convertDurationToSamples(samplerate: int, duration: float) -> int:
         samples = duration * samplerate
 
         # Round down to nearest integer
         return int(samples)
 
     @staticmethod
-    def convertSamplesToDuration(samplerate: int, samples: int) -> int | float:
+    def convertSamplesToDuration(samplerate: int, samples: int) -> float:
         duration = samples / samplerate
 
         return duration
-
-    def read(self, duration: int | float, *channels: str) -> ndarray:
+    
+    def read(self, duration: float, *channels: str, timeout: float = 300) -> np.ndarray:
         """
         Read from user-specified channels for `duration` seconds
         """
@@ -103,14 +103,12 @@ class MyDAQ:
             self._configureChannelTimings(readTask, samples)
 
             # Now read in data. Use WAIT_INFINITELY to assure ample reading time
-            data = readTask.read(
-                number_of_samples_per_channel=samples,
-                timeout=dx.constants.WAIT_INFINITELY,
-            )
-
-            return np.asarray(data)
-
-    def write(self, voltages: ndarray, *channels: str) -> None:
+            data = readTask.read(number_of_samples_per_channel=samples, 
+                                 timeout=timeout)
+            
+        return np.asarray(data)
+    
+    def write(self, voltages: np.ndarray, *channels: str) -> None:
         """
         Write `voltages` to user-specified channels.
         """
@@ -127,13 +125,8 @@ class MyDAQ:
             # Wait for writing to finish
             sleep(samples / self.samplerate + 1 / 1000)
             writeTask.stop()
-
-    def readwrite(
-        self,
-        voltages: ndarray,
-        readChannels: str | list[str],
-        writeChannels: str | list[str],
-    ) -> ndarray:
+    
+    def readwrite(self, voltages: np.ndarray, readChannels: str | list[str], writeChannels: str | list[str], timeout: float = 300) -> np.ndarray:
         samples = max(voltages.shape)
 
         with dx.Task("read") as readTask, dx.Task("write") as writeTask:
@@ -144,32 +137,24 @@ class MyDAQ:
             self._configureChannelTimings(readTask, samples)
 
             # Start writing. Since reading is a blocking function, there
-            # is no need to sleep and wait for writing to finish.
-            writeTask.write(voltages, auto_start=True)
-            data = readTask.read(
-                number_of_samples_per_channel=samples,
-                timeout=dx.constants.WAIT_INFINITELY,
-            )
-
+            # is no need to sleep and wait for writing to finish. 
+            writeTask.write(voltages)
+            
+            writeTask.start()
+            data = readTask.read(number_of_samples_per_channel=samples, timeout=timeout)
+            
             return np.asarray(data)
 
     @staticmethod
-    def generateWaveform(
-        form: str,
-        samplerate: int,
-        frequency: int | float,
-        amplitude: int | float = 1,
-        phase: int | float = 0,
-        duration: int | float = 1,
-    ) -> tuple[ndarray, ndarray]:
+    def generateWaveform(function, samplerate: int, frequency: float, amplitude: float = 1, phase: float = 0, duration: float = 1, phaseInDegrees: bool = True) -> np.ndarray:
         """
         Geneate a waveform from the 4 basic wave parameters
 
         Parameters
         ----------
-        form : str
-            Type of waveform.
-            Must be in ["sine", "square", "sawtooth", "isawtooth", "triangle"].
+        function : str or callable
+            Type of waveform. The parameters `amplitude`, `frequency` and `phase`
+            are passed to the callable.
         samplerate: int
             Samplerate with which to sample waveform.
         frequency : int or float
@@ -180,6 +165,8 @@ class MyDAQ:
             Phase of the waveform in degrees. The default is 0.
         duration : int or float, optional
             Duration of the waveform in seconds. The default is 1.
+        phaseInDegrees: bool, optional
+            Whether phase is given in degrees. The default is True
 
         Returns
         -------
@@ -190,28 +177,37 @@ class MyDAQ:
 
         """
         timeArray = MyDAQ.getTimeArray(duration, samplerate)
-        arg = 2 * np.pi * frequency * timeArray + np.deg2rad(phase)
-
-        match form:
-            case "sine":
-                wave = amplitude * np.sin(arg)
-            case "square":
-                wave = amplitude * square(arg)
-            case "sawtooth":
-                wave = amplitude * sawtooth(arg)
-            case "isawtooth":
-                wave = amplitude * sawtooth(arg, width=0)
-            case "triangle":
-                wave = amplitude * sawtooth(arg, width=0.5)
-            case _:
-                raise ValueError(f"{form} is not a recognized wavefront form")
+        if phaseInDegrees:
+            phase = np.deg2rad(phase)
+        
+        if not callable(function):
+            function = MyDAQ.findFunction(function)
+            
+        wave = function(timeArray, amplitude, frequency, phase)
+            
         return timeArray, wave
-
+    
     @staticmethod
-    def getTimeArray(duration: int | float, samplerate: int) -> ndarray:
-        return np.arange(1 / samplerate, duration, 1 / samplerate)
-
-    def __str__(self):
+    def findFunction(function: str):
+        match function:
+            case "sine":
+                return lambda x, A, f, p: A * np.sin(2 * np.pi * f * x + p)
+            case "square":
+                return lambda x, A, f, p: A * square(2 * np.pi * f * x + p)
+            case "sawtooth":
+                return lambda x, A, f, p: A * sawtooth(2 * np.pi * f * x + p)
+            case "isawtooth":
+                return lambda x, A, f, p: A * sawtooth(2 * np.pi * f * x + p, width=0)
+            case "triangle":
+                return lambda x, A, f, p: A * sawtooth(2 * np.pi * f * x + p, width=0.5)
+            case _:
+                raise ValueError(f"{function} is not a recognized wavefront form")
+    
+    @staticmethod
+    def getTimeArray(duration: float, samplerate: int) -> np.ndarray:
+        return np.arange(1/samplerate, duration, 1/samplerate)
+    
+    def __str__(self) -> str:
         """
         Only used for pretty printing of class
         E.g. using `print(MyDAQ)` will neatly print the most important
