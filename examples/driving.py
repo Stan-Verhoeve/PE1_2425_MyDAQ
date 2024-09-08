@@ -59,8 +59,8 @@ daq.write(np.array([sine, square]), "AO0", "AO1")
 # timeArray
 
 # Create array of random duration
-randomDuration = np.random.uniform(1,5)
-randomSamples = np.arange(0, randomDuration, 1/daq.samplerate)
+randomDuration = np.random.uniform(1, 5)
+randomSamples = np.arange(0, randomDuration, 1 / daq.samplerate)
 
 
 # Reconstruct duration using class functionality

@@ -82,7 +82,7 @@ class Bode:
             phaseIn = 0.0
 
         # We are not interested in angles outside (0, -2pi]
-        return np.mod(phaseOut - phaseIn + offset, 2*np.pi) - 2*np.pi - offset
+        return np.mod(phaseOut - phaseIn + offset, 2 * np.pi) - 2 * np.pi - offset
 
 
 def plotBode(

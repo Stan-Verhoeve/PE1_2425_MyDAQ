@@ -37,7 +37,7 @@ for i, freq in enumerate(freqs):
     # Get power and phase of freq, with a bandwidth delta=1
     power = bode.getPower(freq, 1)
     phase = bode.getPhase(freq, 0)
-    
+
     # Save power and phase of freq.
     powers[i] = power
     phases[i] = phases
