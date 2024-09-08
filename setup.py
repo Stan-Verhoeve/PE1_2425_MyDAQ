@@ -8,8 +8,9 @@ setup(
     author="Stan Verhoeve",
     author_email="verhoeve@strw.leidenuniv.nl",
     packages=["span"],
-    install_requires=["numpy",
-                      "scipy",
-                      "nidaqmx",
-                      ],
+    install_requires=[
+        "numpy",
+        "scipy",
+        "nidaqmx",
+    ],
 )

@@ -2,6 +2,7 @@
 Simple example measurement of a LTI, and how to use
 the Bode() class to extract information for the bode plots
 """
+
 import numpy as np
 from span.bode import Bode, plotBode
 from span.daq import MyDAQ
@@ -32,14 +33,14 @@ for i, freq in enumerate(freqs):
 
     # Create Bode() instance
     bode = Bode(daq.samplerate, signalOut, signalIn)
-    
+
     # Get power and phase of freq, with a bandwidth delta=1
     power = bode.getPower(freq, 1)
-    phase = bode.getPhase(freq, 1)
+    phase = bode.getPhase(freq, 0)
     
     # Save power and phase of freq.
     powers[i] = power
     phases[i] = phases
 
 # Plot the bode plots
-plotBode(2*np.pi*freqs, np.sqrt(powers), phases)
+plotBode(2 * np.pi * freqs, np.sqrt(powers), phases)
