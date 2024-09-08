@@ -21,8 +21,8 @@ Hfunc = lambda w: wres / (wres + 1j * w)
 freqs = np.logspace(0, 5, 50)
 
 # Keep track of (simulated) power and phase
-powers = np.zeroslike(freqs)
-phases = np.zeroslike(freqs)
+powers = np.zeros_like(freqs)
+phases = np.zeros_like(freqs)
 
 # Run simulation over range of frequencies
 for i, freq in enumerate(freqs):
@@ -40,7 +40,7 @@ for i, freq in enumerate(freqs):
 
     # Save power and phase of freq.
     powers[i] = power
-    phases[i] = phases
+    phases[i] = phase
 
 # Analytic solution of transfer function
 analytic = Hfunc(2 * np.pi * freqs)

@@ -5,11 +5,9 @@ from time import sleep
 
 
 class MyDAQ:
-    __samplerate: int
-    __name: str
-
     def __init__(self):
-        pass
+        self.__samplerate = None
+        self.__name = None
 
     @property
     def samplerate(self) -> int:

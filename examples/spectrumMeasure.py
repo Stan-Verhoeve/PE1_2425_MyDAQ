@@ -17,8 +17,8 @@ print(daq)
 freqs = np.logspace(0, 5, 50)
 
 # Keep track of power and phase
-powers = np.zeroslike(freqs)
-phases = np.zeroslike(freqs)
+powers = np.zeros_like(freqs)
+phases = np.zeros_like(freqs)
 
 
 # Measure over range of frequencies
@@ -40,7 +40,7 @@ for i, freq in enumerate(freqs):
 
     # Save power and phase of freq.
     powers[i] = power
-    phases[i] = phases
+    phases[i] = phase
 
 # Plot the bode plots
 plotBode(2 * np.pi * freqs, np.sqrt(powers), phases)
