@@ -26,10 +26,10 @@ for i, freq in enumerate(freqs):
     print(freq)
 
     # Create sinusoidal waveform
-    timeArray, signalIn = daq.generateWaveform("sine", daq.samplerate, frequency=freq)
+    timeArray, signalWrite = daq.generateWaveform("sine", daq.samplerate, frequency=freq)
 
     # Write to channel AO0 and read on channel AI0
-    signalOut = daq.readwrite(signalIn, "AI0", "AO0")
+    signalOut, signalIn = daq.readwrite(signalWrite, ["AI0", "AI1"], "AO0")
 
     # Create Bode() instance
     bode = Bode(daq.samplerate, signalOut, signalIn)
