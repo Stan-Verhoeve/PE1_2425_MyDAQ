@@ -46,10 +46,12 @@ plt.ylabel("Amplitude [V]")
 plt.legend()
 plt.show()
 
+input("Press enter to start writing back to back")
 # Write a single waveform on channel 1, then the other on channel 2 (succesively)
 daq.write(sine, "AO0")
 daq.write(square, "AO1")
 
+input("Press enter to start writing simultaneously")
 # Write both waveforms simultaneously on 2 channels
 daq.write(np.array([sine, square]), "AO0", "AO1")
 
@@ -77,6 +79,7 @@ print(f"Reconstructed duration : {reconstructedDuration:.4f}")
 ===============================================================================
 """
 
+input("Press enter to start reading back to back")
 # Read on channel 1 for 2 seconds, then on channel 2 for 1 second (succesively)
 data1 = daq.read(2, "AI0")
 data2 = daq.read(1, "AI1")
@@ -90,6 +93,7 @@ plt.xlabel("Time [s]")
 plt.ylabel("Amplitude [V]")
 plt.show()
 
+input("Press enter to start reading simultaneously")
 # Now read both channels simultaneously for 1 second
 data = daq.read(1, "AI0", "AI1")
 timeArray = daq.getTimeArray(1, daq.samplerate)
@@ -106,13 +110,14 @@ plt.show()
                         Functionality: reading + writing
 ===============================================================================
 """
+input("Press enter to read and write simultaneously")
 # Write sine on channel 1 and simultaneously read channel 2
 data1 = daq.readwrite(sine, "AI1", "AO0")
 time1 = daq.getTimeArray(1, daq.samplerate)
 
 # Write square on channel 2 and simultaneously read channel 1
 data2 = daq.readwrite(square, "AI0", "AO1")
-time2 = daq.getTImeArray(1, daq.samplerate)
+time2 = daq.getTimeArray(1, daq.samplerate)
 
 plt.figure()
 plt.plot(time1, data1, label="Channel 2")
