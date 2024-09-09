@@ -37,6 +37,14 @@ class Bode:
     def freqs(voltage: np.ndarray, samplerate: int) -> np.ndarray:
         return np.fft.fftshift(np.fft.fftfreq(voltage.size, d=1 / samplerate))
 
+    @staticmethod
+    def restrictPiPi(angle):
+        if angle > np.pi:
+            angle -= 2 * np.pi
+        if angle < -np.pi:
+            angle += 2 * np.pi
+        return angle
+    
     def getPower(self, f: float, delta: float) -> float:
         """
         Calculate the power (ratio) using Parserval theorem
@@ -81,8 +89,9 @@ class Bode:
         else:
             phaseIn = 0.0
 
-        # We are not interested in angles outside (0, -2pi]
-        return np.mod(phaseOut - phaseIn + offset, 2 * np.pi) - 2 * np.pi - offset
+        phase = phaseOut - phaseIn
+        # We are not interested in angles outside (-pi, pi]
+        return Bode.restrictPiPi(phase)
 
 
 def plotBode(
@@ -98,7 +107,7 @@ def plotBode(
     gs = GridSpec(2, 4)
 
     # Create figure and axes
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,7))
     magAx = fig.add_subplot(gs[0, :2])
     phaseAx = fig.add_subplot(gs[0, 2:])
     polarAx = fig.add_subplot(gs[1, 1:3], projection="polar")
