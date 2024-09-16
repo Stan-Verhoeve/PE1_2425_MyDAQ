@@ -216,7 +216,8 @@ class MyDAQ:
 
     @staticmethod
     def getTimeArray(duration: float, samplerate: int) -> np.ndarray:
-        return np.arange(0, duration, 1 / samplerate)
+        steps = MyDAQ.convertDurationToSamples(samplerate, duration)
+        return np.linspace(1 / samplerate, duration, steps)
 
     def __str__(self) -> str:
         """
