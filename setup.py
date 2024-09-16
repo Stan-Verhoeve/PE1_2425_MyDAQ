@@ -12,5 +12,6 @@ setup(
         "numpy",
         "scipy",
         "nidaqmx",
+        "matplotlib",
     ],
 )
