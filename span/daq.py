@@ -211,6 +211,8 @@ class MyDAQ:
                 return lambda x, A, f, p: A * sawtooth(2 * np.pi * f * x + p, width=0)
             case "triangle":
                 return lambda x, A, f, p: A * sawtooth(2 * np.pi * f * x + p, width=0.5)
+            case "white":
+                return lambda x, A, f, p: np.random.normal(0, A, x.shape)
             case _:
                 raise ValueError(f"{function} is not a recognized wavefront form")
 

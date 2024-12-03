@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.integrate import trapezoid
+from scipy.signal import welch
 
 
 @dataclass
@@ -45,6 +46,16 @@ class Bode:
             angle += 2 * np.pi
         return angle
     
+    def getWelchSpectrum(self, nperseg: int = 1024) -> np.ndarray:
+        if self.voltageIn is not None:
+            __, welchIn = welch(self.voltageIn, nperseg = nperseg)
+        else:
+            welchIn = 1.0
+
+        freqs, welchOut = welch(self.voltageOut, nperseg = nperseg)
+
+        return freqs, welchIn, welchOut
+
     def getPower(self, f: float, delta: float) -> float:
         """
         Calculate the power (ratio) using Parserval theorem
