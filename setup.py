@@ -13,5 +13,6 @@ setup(
         "scipy",
         "nidaqmx",
         "matplotlib",
+        "tqdm",
     ],
 )
