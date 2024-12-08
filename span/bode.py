@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpec
 from scipy.integrate import trapezoid
-from scipy.signal import welch
+from scipy.signal import welch, csd
 
 
 @dataclass
@@ -46,15 +46,28 @@ class Bode:
             angle += 2 * np.pi
         return angle
     
-    def getWelchSpectrum(self, nperseg: int = 1024) -> np.ndarray:
+    def getTransfer(self, nperseg: int = 1024) -> np.ndarray:
+        """
+        Calculate the transfer function using Welch's method.
+        If `voltageIn` is white noise, this returns the full transfer function.
+        If `voltageIn` is coloured noise (1/f^n), this returns the uncorrected
+        full transfer function.
+        If `voltageIn` is sinusoidal, the return is only physical for the input
+        frequency, and post-processing care should be taken to extract from the
+        return only the transfer function at this input frequency. This is
+        equivalent to calling `getPower` and `getPhase`.
+        """
         if self.voltageIn is not None:
-            __, welchIn = welch(self.voltageIn, nperseg = nperseg)
+        # Compute cross power spectral density (CSD) and power spectral density (PSD)
+            freqs, Pxy = csd(self.voltageIn, self.voltageOut, fs=self.samplerate, nperseg=nperseg)
+            _, Pxx = welch(self.voltageIn, fs=self.samplerate, nperseg=nperseg)
+            H = Pxy / Pxx
         else:
-            welchIn = 1.0
-
-        freqs, welchOut = welch(self.voltageOut, nperseg = nperseg)
-
-        return freqs, welchIn, welchOut
+            print("No input given; cannot calculate phase information.")
+            print("Will return power spectral density of output instead.")
+            freqs, H = welch(self.voltageOut, fs=self.samplerate, nperseg=nperseg)
+        
+        return freqs, H
 
     def getPower(self, f: float, delta: float) -> float:
         """
@@ -136,15 +149,11 @@ def plotBode(
     polarAx.set_xlabel("$\phi$")
     polarAx.set_ylabel("$\omega$")
 
-    # Convert to logarithmic axes
-    magAx.set_xscale("log")
-    phaseAx.set_xscale("log")
-
     # Add grid
     magAx.grid(alpha=0.5)
     phaseAx.grid(alpha=0.5)
     polarAx.grid(alpha=0.5)
-
+    
     # Add analytic if provided
     if not (analytic is None):
         magAx.plot(freqs, 20 * np.log10(abs(analytic)), c="r", label="Analytic")
@@ -152,6 +161,16 @@ def plotBode(
         polarAx.plot(np.angle(analytic), abs(analytic), c="r")
 
         magAx.legend()
+    
+    # Convert to logarithmic axes
+    magAx.set_xscale("log")
+    phaseAx.set_xscale("log")
+    
+    # Set limits if provided
+    kwargs.get("xlim") and magAx.set_xlim(kwargs["xlim"])
+    kwargs.get("xlim") and phaseAx.set_xlim(kwargs["xlim"])
+    kwargs.get("mag_ylim") and magAx.set_ylim(kwargs["mag_ylim"])
+    kwargs.get("phase_ylim") and phaseAx.set_ylim(kwargs["phase_ylim"])
 
     plt.tight_layout()
     plt.show()
