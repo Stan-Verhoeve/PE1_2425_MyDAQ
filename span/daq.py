@@ -169,7 +169,7 @@ class MyDAQ:
         samplerate: int
             Samplerate with which to sample waveform.
         frequency : int or float
-            Frequency of the waveform.
+            Frequency of the waveform. Ignored if `function` is "white".
         amplitude : int or float, optional
             Amplitude of the waveform in volts. The default is 1.
         phase : int or float, optional
