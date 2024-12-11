@@ -40,11 +40,7 @@ class Bode:
 
     @staticmethod
     def restrictPiPi(angle):
-        if angle > np.pi:
-            angle -= 2 * np.pi
-        if angle < -np.pi:
-            angle += 2 * np.pi
-        return angle
+        return np.mod(angle + np.pi, 2*np.pi) - np.pi
     
     def getTransfer(self, nperseg: int = 1024) -> np.ndarray:
         """
@@ -135,11 +131,20 @@ def plotBode(
     magAx = fig.add_subplot(gs[0, :2])
     phaseAx = fig.add_subplot(gs[0, 2:])
     polarAx = fig.add_subplot(gs[1, 1:3], projection="polar")
-
+    
+    # If provided, convert magnitude error to decibels
+    if not (kwargs.get("merr") is None):
+        logErr = 20 / np.log(10) * kwargs.get("merr") / abs(mag)
+    else:
+        logErr = None
+    
     # Plot data
-    magAx.scatter(freqs, 20 * np.log10(abs(mag)), s=4, c="k", label="Measured")
-    phaseAx.scatter(freqs, phase, s=4, c="k")
-    polarAx.scatter(phase, mag, s=4, c="k")
+    magAx.errorbar(freqs, 20 * np.log10(abs(mag)), yerr=logErr, 
+                   markersize=4, fmt=".", c="k", label="Measured", zorder=0)
+    phaseAx.errorbar(freqs, phase, yerr=kwargs.get("perr"), 
+                     markersize=4, fmt=".", c="k", zorder=0)
+    polarAx.errorbar(phase, mag, xerr=kwargs.get("perr"), yerr=kwargs.get("merr"), 
+                     markersize=4, fmt=".", c="k", zorder=0)
 
     # Add labels
     magAx.set_xlabel("Frequency [rad s$^{-1}$]")
