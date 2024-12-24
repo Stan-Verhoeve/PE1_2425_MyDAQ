@@ -3,8 +3,8 @@ SPectral ANalyzer (SPAN) is a very basic code to drive the NI MyDAQ for automate
 
 # Installation
 It is recommended to create a virtual python3 environment and activate it.
-This can be done using the build in `venv` library in python (e.g. https://docs.python.org/3/library/venv.html) or using conda to make an environment (e.g. https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
-Using conda to manage the environment is generally more simple, but requires the installation of anaconda of a similar conda installation.
+This can be done using the build-in `venv` library in python (e.g. https://docs.python.org/3/library/venv.html) or using conda to make an environment (e.g. https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
+Using conda to manage the environment is generally more simple, but requires the installation of anaconda or a similar conda installation.
 * `git clone` the repository using either `HTTPS` or `SSH`
 * Move into the main directory
 * Install using `pip install .`
