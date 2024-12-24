@@ -40,8 +40,8 @@ class Bode:
 
     @staticmethod
     def restrictPiPi(angle):
-        return np.mod(angle + np.pi, 2*np.pi) - np.pi
-    
+        return np.mod(angle + np.pi, 2 * np.pi) - np.pi
+
     def getTransfer(self, nperseg: int = 1024) -> np.ndarray:
         """
         Calculate the transfer function using Welch's method.
@@ -54,15 +54,17 @@ class Bode:
         equivalent to calling `getPower` and `getPhase`.
         """
         if self.voltageIn is not None:
-        # Compute cross power spectral density (CSD) and power spectral density (PSD)
-            freqs, Pxy = csd(self.voltageIn, self.voltageOut, fs=self.samplerate, nperseg=nperseg)
+            # Compute cross power spectral density (CSD) and power spectral density (PSD)
+            freqs, Pxy = csd(
+                self.voltageIn, self.voltageOut, fs=self.samplerate, nperseg=nperseg
+            )
             _, Pxx = welch(self.voltageIn, fs=self.samplerate, nperseg=nperseg)
             H = Pxy / Pxx
         else:
             print("No input given; cannot calculate phase information.")
             print("Will return power spectral density of output instead.")
             freqs, H = welch(self.voltageOut, fs=self.samplerate, nperseg=nperseg)
-        
+
         return freqs, H
 
     def getPower(self, f: float, delta: float) -> float:
@@ -120,31 +122,48 @@ def plotBode(
     phase: np.ndarray,
     save: str = None,
     analytic: np.ndarray = None,
-    **kwargs
+    **kwargs,
 ) -> None:
 
     # Use GridSpec to nicely center subplots
     gs = GridSpec(2, 4)
 
     # Create figure and axes
-    fig = plt.figure(figsize=(10,7))
+    fig = plt.figure(figsize=(10, 7))
     magAx = fig.add_subplot(gs[0, :2])
     phaseAx = fig.add_subplot(gs[0, 2:])
     polarAx = fig.add_subplot(gs[1, 1:3], projection="polar")
-    
+
     # If provided, convert magnitude error to decibels
     if not (kwargs.get("merr") is None):
         logErr = 20 / np.log(10) * kwargs.get("merr") / abs(mag)
     else:
         logErr = None
-    
+
     # Plot data
-    magAx.errorbar(freqs, 20 * np.log10(abs(mag)), yerr=logErr, 
-                   markersize=4, fmt=".", c="k", label="Measured", zorder=0)
-    phaseAx.errorbar(freqs, phase, yerr=kwargs.get("perr"), 
-                     markersize=4, fmt=".", c="k", zorder=0)
-    polarAx.errorbar(phase, mag, xerr=kwargs.get("perr"), yerr=kwargs.get("merr"), 
-                     markersize=4, fmt=".", c="k", zorder=0)
+    magAx.errorbar(
+        freqs,
+        20 * np.log10(abs(mag)),
+        yerr=logErr,
+        markersize=4,
+        fmt=".",
+        c="k",
+        label="Measured",
+        zorder=0,
+    )
+    phaseAx.errorbar(
+        freqs, phase, yerr=kwargs.get("perr"), markersize=4, fmt=".", c="k", zorder=0
+    )
+    polarAx.errorbar(
+        phase,
+        mag,
+        xerr=kwargs.get("perr"),
+        yerr=kwargs.get("merr"),
+        markersize=4,
+        fmt=".",
+        c="k",
+        zorder=0,
+    )
 
     # Add labels
     magAx.set_xlabel("Frequency [rad s$^{-1}$]")
@@ -158,7 +177,7 @@ def plotBode(
     magAx.grid(alpha=0.5)
     phaseAx.grid(alpha=0.5)
     polarAx.grid(alpha=0.5)
-    
+
     # Add analytic if provided
     if not (analytic is None):
         magAx.plot(freqs, 20 * np.log10(abs(analytic)), c="r", label="Analytic")
@@ -166,11 +185,11 @@ def plotBode(
         polarAx.plot(np.angle(analytic), abs(analytic), c="r")
 
         magAx.legend()
-    
+
     # Convert to logarithmic axes
     magAx.set_xscale("log")
     phaseAx.set_xscale("log")
-    
+
     # Set limits if provided
     kwargs.get("xlim") and magAx.set_xlim(kwargs["xlim"])
     kwargs.get("xlim") and phaseAx.set_xlim(kwargs["xlim"])
