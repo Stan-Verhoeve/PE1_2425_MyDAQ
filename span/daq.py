@@ -1,7 +1,9 @@
 import numpy as np
 import nidaqmx as dx
+from nidaqmx import stream_readers
 from scipy.signal import sawtooth, square
 from time import sleep
+import inspect
 
 
 class MyDAQ:
@@ -62,7 +64,7 @@ class MyDAQ:
             else:
                 task.ai_channels.add_ai_voltage_chan(f"{self.name}/{channel}")
 
-    def _configureChannelTimings(self, task: dx.task.Task, samples: int) -> None:
+    def _configureFiniteChannelTimings(self, task: dx.task.Task, samples: int) -> None:
         """
         Set the correct timings for task based on number of samples
         """
@@ -74,12 +76,22 @@ class MyDAQ:
             samps_per_chan=samples,
         )
 
+    def _configureContinuousChannelTimings(self, task: dx.task.Task) -> None:
+        """
+        Set the correct timings for continuous reading tasks
+        """
+        assert not (self.samplerate is None), "Samplerate should be set first."
+
+        task.timing.cfg_samp_clk_timing(
+            self.samplerate, sample_mode=dx.constants.AcquisitionType.CONTINUOUS
+        )
+
     @staticmethod
     def convertDurationToSamples(samplerate: int, duration: float) -> int:
         samples = duration * samplerate
 
         # Round down to nearest integer
-        return int(samples)
+        return int(round(samples))
 
     @staticmethod
     def convertSamplesToDuration(samplerate: int, samples: int) -> float:
@@ -98,7 +110,7 @@ class MyDAQ:
         # Create read task
         with dx.Task("readOnly") as readTask:
             self._addInputChannels(readTask, channels)
-            self._configureChannelTimings(readTask, samples)
+            self._configureFiniteChannelTimings(readTask, samples)
 
             # Now read in data. Use WAIT_INFINITELY to assure ample reading time
             data = readTask.read(number_of_samples_per_channel=samples, timeout=timeout)
@@ -114,7 +126,7 @@ class MyDAQ:
         # Create write task
         with dx.Task("writeOnly") as writeTask:
             self._addOutputChannels(writeTask, channels)
-            self._configureChannelTimings(writeTask, samples)
+            self._configureFiniteChannelTimings(writeTask, samples)
 
             # Now write the data
             writeTask.write(voltages, auto_start=True)
@@ -136,8 +148,8 @@ class MyDAQ:
             self._addOutputChannels(writeTask, writeChannels)
             self._addInputChannels(readTask, readChannels)
 
-            self._configureChannelTimings(writeTask, samples)
-            self._configureChannelTimings(readTask, samples)
+            self._configureFiniteChannelTimings(writeTask, samples)
+            self._configureFiniteChannelTimings(readTask, samples)
 
             # Start writing. Since reading is a blocking function, there
             # is no need to sleep and wait for writing to finish.
@@ -147,6 +159,69 @@ class MyDAQ:
             data = readTask.read(number_of_samples_per_channel=samples, timeout=timeout)
 
             return np.asarray(data)
+
+    def continuousFeedback(
+        self,
+        readChannels: str | list[str],
+        writeChannels: str | list[str],
+        feedbackRate: int = 5,
+        pid: object = None,
+    ) -> np.ndarray:
+
+        assert hasattr(pid, "compute") and callable(
+            getattr(pid, "compute")
+        ), "pid class should have a method 'compute'"
+        # Time for single feedback cycle
+        timePerCycle = 1 / feedbackRate
+        samplesPerBuffer = int(self.samplerate * timePerCycle)
+
+        # Total feedback provided
+        totalFeedback = []
+        totalData = []
+
+        def reading_task_callback(task_idx, event_type, num_samples, callback_data):
+            # Get the data out of the buffer
+            buffer = np.zeros((1, num_samples), dtype=np.float64)
+            reader.read_many_sample(buffer, num_samples)
+
+            # Read the first channel.
+            data = buffer[0]
+
+            # Manipulate the data here to get the value for the feedback.
+            feedback = pid.compute(data, 1 / self.samplerate)
+
+            totalFeedback.extend([feedback])
+            totalData.extend(list(data))
+
+            # Write the feedback to AO0.
+            writeTask.write(feedback, auto_start=True)
+            writeTask.stop()
+
+            # Return 0 to indicate that we did not get an error.
+            return 0
+
+        with dx.Task("write") as writeTask, dx.Task("read") as readTask:
+            self._addOutputChannels(writeTask, writeChannels)
+            self._addInputChannels(readTask, readChannels)
+
+            self._configureContinuousChannelTimings(readTask)
+
+            reader = stream_readers.AnalogMultiChannelReader(readTask.in_stream)
+
+            readTask.register_every_n_samples_acquired_into_buffer_event(
+                samplesPerBuffer, reading_task_callback
+            )
+            readTask.start()
+
+            try:
+                input("Feedback running. Press Enter to stop.")
+            except KeyboardInterrupt:
+                print("Stopping feedback.")
+            finally:
+                readTask.stop()
+                writeTask.stop()
+
+        return np.array(totalData), np.array(totalFeedback)
 
     @staticmethod
     def generateWaveform(
@@ -219,7 +294,8 @@ class MyDAQ:
     @staticmethod
     def getTimeArray(duration: float, samplerate: int) -> np.ndarray:
         steps = MyDAQ.convertDurationToSamples(samplerate, duration)
-        return np.linspace(1 / samplerate, duration, steps)
+        return np.arange(0, duration, 1 / samplerate)
+        # return np.linspace(1 / samplerate, duration, steps)
 
     def __str__(self) -> str:
         """
