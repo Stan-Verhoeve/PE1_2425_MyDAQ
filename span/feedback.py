@@ -35,8 +35,10 @@ class PIDController:
         self.I = 0.0
 
     def compute(self, data, dt):
-        assert not (self.clipFunction is None), ""
-        data = abs(np.asarray(data))
+        assert not (self.clipFunction is None), "Please first set clip function."
+        
+        # Ensure data has size
+        data = np.asarray(data)
         error = self.setpoint - data
         # print(error)
 
