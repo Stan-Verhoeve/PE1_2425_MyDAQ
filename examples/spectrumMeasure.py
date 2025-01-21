@@ -23,7 +23,9 @@ print(daq)
 # Duration of measurement
 T = 2
 # Generate array of white noise
-timeArray, white = daq.generateWaveform("white", daq.samplerate, frequency=1, duration=T)
+timeArray, white = daq.generateWaveform(
+    "white", daq.samplerate, frequency=1, duration=T
+)
 
 # Write to channel AO0, read on channel AI0, AI1
 signalOut, signalIn = daq.readwrite(white, ["AI0", "AI1"], "AO0")
@@ -33,9 +35,7 @@ bode = Bode(daq.samplerate, signalOut, signalIn)
 freqs, H = bode.getTransfer(nperseg=int(white.size / 50))
 
 # Plot transfer function
-plotBode(2*np.pi*freqs, np.abs(H), np.angle(H), 
-         xlim=(10, 5e5), 
-         mag_ylim=(-80, 20))
+plotBode(2 * np.pi * freqs, np.abs(H), np.angle(H), xlim=(10, 5e5), mag_ylim=(-80, 20))
 
 
 # =============================================================================
@@ -52,7 +52,9 @@ phases = np.zeros_like(freqs)
 
 for i, freq in enumerate(tqdm(freqs)):
     # Create sinusoidal waveform
-    timeArray, signalWrite = daq.generateWaveform("sine", daq.samplerate, frequency=freq)
+    timeArray, signalWrite = daq.generateWaveform(
+        "sine", daq.samplerate, frequency=freq
+    )
 
     # Write to channel AO0 and read on channel AI0
     signalOut, signalIn = daq.readwrite(signalWrite, ["AI0", "AI1"], "AO0")
@@ -69,9 +71,7 @@ for i, freq in enumerate(tqdm(freqs)):
     phases[i] = phase
 
 # Plot the bode plots
-plotBode(2 * np.pi * freqs, np.sqrt(powers), phases,
-         xlim=(10, 5e5), 
-         mag_ylim=(-80, 20))
+plotBode(2 * np.pi * freqs, np.sqrt(powers), phases, xlim=(10, 5e5), mag_ylim=(-80, 20))
 
 # =============================================================================
 # = There are two methods to measure the transfer function using SPAN         =
@@ -95,16 +95,18 @@ phases = np.zeros_like(freqs)
 # Run simulation over range of frequencies
 for i, freq in enumerate(tqdm(freqs)):
     # Input is simple sine, simulate output
-    timeArray, signalWrite = MyDAQ.generateWaveform("sine", daq.samplerate, frequency=freq)
+    timeArray, signalWrite = MyDAQ.generateWaveform(
+        "sine", daq.samplerate, frequency=freq
+    )
     signalOut, signalIn = daq.readwrite(signalWrite, ["AI0", "AI1"], "AO0")
 
     # Create Bode() instance
     bode = Bode(daq.samplerate, signalOut, signalIn)
 
     # Get power and phase of freq, with a bandwidth delta=1
-    Hfreqs, H = bode.getTransfer(nperseg = int(signalIn.size) / 50)
+    Hfreqs, H = bode.getTransfer(nperseg=int(signalIn.size) / 50)
     index = np.argmin(abs(Hfreqs - freq))
-    
+
     mag = abs(H)[index]
     phase = np.angle(H)[index]
     # Save power and phase of freq.
@@ -112,6 +114,4 @@ for i, freq in enumerate(tqdm(freqs)):
     phases[i] = phase
 
 # Plot the bode plots
-plotBode(2 * np.pi * freqs, mags, phases,
-         xlim=(10, 5e5), 
-         mag_ylim=(-80, 20))
+plotBode(2 * np.pi * freqs, mags, phases, xlim=(10, 5e5), mag_ylim=(-80, 20))

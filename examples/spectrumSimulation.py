@@ -46,8 +46,14 @@ freqs, H = bode.getTransfer(nperseg=int(white.size / 10))
 analytic = Hfunc(2 * np.pi * freqs)
 
 # Plot transfer function
-plotBode(2*np.pi*freqs, np.abs(H), np.angle(H), analytic=analytic,
-         xlim=(10, 1e5), mag_ylim=(-60, 10))
+plotBode(
+    2 * np.pi * freqs,
+    np.abs(H),
+    np.angle(H),
+    analytic=analytic,
+    xlim=(10, 1e5),
+    mag_ylim=(-60, 10),
+)
 
 
 # =============================================================================
@@ -81,8 +87,8 @@ for i, freq in enumerate(tqdm(freqs)):
     # Save power and phase of freq.
     powers[i] = power
     phases[i] = phase
-    
-    
+
+
 # Analytic solution of transfer function
 analytic = Hfunc(2 * np.pi * freqs)
 
@@ -119,18 +125,18 @@ for i, freq in enumerate(tqdm(freqs)):
     bode = Bode(rate, signalOut, signalIn)
 
     # Get power and phase of freq, with a bandwidth delta=1
-    Hfreqs, H = bode.getTransfer(nperseg = int(signalIn.size) / 10)
+    Hfreqs, H = bode.getTransfer(nperseg=int(signalIn.size) / 10)
     index = np.argmin(abs(Hfreqs - freq))
-    
+
     # plotBode(2 * np.pi * freqs, np.abs(H), np.angle(H))
-    
+
     mag = abs(H)[index]
     phase = np.angle(H)[index]
     # Save power and phase of freq.
     mags[i] = mag
     phases[i] = phase
-    
-    
+
+
 # Analytic solution of transfer function
 analytic = Hfunc(2 * np.pi * freqs)
 
